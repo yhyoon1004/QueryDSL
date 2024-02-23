@@ -11,6 +11,7 @@ spring:
     properties:
       hibernate:
         format_sql: true #log? sql? ? ?? ?? ????? ??? ???? ??
+#        show_sql: true systemOut 으로 출력함으로 주석처리
 #  data:
 #    web:
 #      pageable:
