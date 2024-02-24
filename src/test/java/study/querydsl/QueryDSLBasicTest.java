@@ -12,6 +12,8 @@ import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
+import static study.querydsl.entity.QMember.member;// static import 로 해당 인스턴스를 가져다쓰는 방법
+
 @SpringBootTest
 @Transactional
 public class QueryDSLBasicTest {
@@ -58,12 +60,11 @@ public class QueryDSLBasicTest {
     
     @Test
     public void startQueryDSL () throws Exception{
-        QMember m = new QMember("m");
-
+//        QMember memberAAA = new QMember("memberAAA"); //생성자로 생성할 경우 엘리어스를 생성자의 문자열로 주게됨
         Member findMember = queryFactory
-                .select(m)
-                .from(m)
-                .where(m.username.eq("member1"))
+                .select(member)
+                .from(member)
+                .where(member.username.eq("member1"))
                 .fetchOne();
 
         Assertions.assertThat(findMember.getUsername()).isEqualTo("member1");
