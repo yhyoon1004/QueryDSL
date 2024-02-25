@@ -12,6 +12,7 @@ import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
+import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.member;// static import 로 해당 인스턴스를 가져다쓰는 방법
 
 @SpringBootTest
@@ -54,7 +55,7 @@ public class QueryDSLBasicTest {
         Member member = em.createQuery("select m from Member m where m.username = :username", Member.class)
                 .setParameter("username", "member1")
                 .getSingleResult();
-        Assertions.assertThat(member.getUsername()).isEqualTo("member1");
+        assertThat(member.getUsername()).isEqualTo("member1");
     }
     
     
@@ -67,9 +68,27 @@ public class QueryDSLBasicTest {
                 .where(member.username.eq("member1"))
                 .fetchOne();
 
-        Assertions.assertThat(findMember.getUsername()).isEqualTo("member1");
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
 
 
+    @Test
+    public void search() throws Exception{
+        Member findMember = queryFactory
+                .selectFrom(member)//이 메서드는 'select(member).from(member)'메서드를 합친 것
+                .where(member.username.eq("member1").and(member.age.eq(10)))
+                .fetchOne();
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void searchAndParam() throws Exception{
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"),  //쉼표로 and() 메서드 대체 가능
+                        member.age.eq(10))
+                .fetchOne();
+        assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 
 }
