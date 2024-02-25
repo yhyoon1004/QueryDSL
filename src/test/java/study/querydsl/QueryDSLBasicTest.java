@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -11,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.member;// static import 로 해당 인스턴스를 가져다쓰는 방법
@@ -89,6 +92,22 @@ public class QueryDSLBasicTest {
                         member.age.eq(10))
                 .fetchOne();
         assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void resultFetchTest () throws Exception{
+        //fetch() -> 결과가 없으면 빈 List 반환, fetchOne() -> 결과가 없으면 null 반환, 2개 이상이면 예외발생
+//        List<Member> fetch =  queryFactory.selectFrom(member).fetch();
+//
+//        Member fetchOne = queryFactory.selectFrom(member).fetchOne();
+//
+//        Member fetchFirst = queryFactory.selectFrom(member).fetchFirst();
+//
+//        QueryResults<Member> fetchResults = queryFactory.selectFrom(member).fetchResults();
+//        fetchResults.getTotal();
+//        List<Member> content = fetchResults.getResults();
+        long fetchCount = queryFactory.selectFrom(member).fetchCount();
+
     }
 
 }
