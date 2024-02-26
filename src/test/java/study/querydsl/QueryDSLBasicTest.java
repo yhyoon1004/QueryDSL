@@ -107,7 +107,34 @@ public class QueryDSLBasicTest {
 //        fetchResults.getTotal();
 //        List<Member> content = fetchResults.getResults();
         long fetchCount = queryFactory.selectFrom(member).fetchCount();
+    }
+
+    /**
+     * 회원 정렬 순서
+     * 1. 회원 나이 내림차순 desc
+     * 2. 회원 이름 올림차순 asc
+     * 단 2 에서 회원 이름이 없으면 마지막에 출력  ->> nullsLast()
+     */
+    @Test
+    public void sortTest () throws Exception{
+        em.persist(new Member(null, 100));
+        em.persist(new Member("member10", 100));
+        em.persist(new Member("member11", 100));
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.eq(100))
+                .orderBy(member.age.desc(), member.username.asc().nullsLast())
+                .fetch();
+
+        Member member10 = result.get(0);
+        Member member11 = result.get(1);
+        Member memberNull = result.get(2);
+
+        assertThat(member10.getUsername()).isEqualTo("member10");
+        assertThat(member11.getUsername()).isEqualTo("member11");
+        assertThat(memberNull.getUsername()).isNull();
 
     }
+
 
 }
