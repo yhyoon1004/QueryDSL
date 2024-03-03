@@ -239,4 +239,48 @@ public class QueryDSLBasicTest {
                 .extracting("username")
                 .containsExactly("teamA","teamB");
     }
+
+    /**
+     *  예) 회원과 팀을 조인하며, 팀 이름이 teamA 인 팀만 조인, 회원은 모두 조회
+     *  JPQL : select m, t from Member m left join m.team t on t.name = 'teamA'
+     *  */
+    @Test
+    public void joinOnTest () throws Exception{
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(member.team, team).on(team.name.eq("teamA"))
+                .fetch();
+        //select 한 값이 특정 객체가 아닌 여러가지 값이므로 tuple 타입을 반환
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+
+    /**
+     * 연관관계가 없는 엔티티를 외부조인
+     * 회원의 이름이 팀의 이름과 같은 대상을 외부 조인
+     * */
+    @Test
+    public void joinOnNoRelationTest () throws Exception{
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team).on(member.username.eq(team.name))
+                .fetch();
+
+        // on -> 연관관계가 없는 엔티티들을 조인할 경우 조인할 조건 값으로 처리할 때 사용
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+
+    }
+    
 }
