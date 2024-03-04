@@ -4,7 +4,9 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -280,7 +282,37 @@ public class QueryDSLBasicTest {
         for (Tuple tuple : result) {
             System.out.println("tuple = " + tuple);
         }
+    }
 
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
+    @Test
+    public void noFetchJoinTest () throws Exception{
+        em.flush();
+        em.clear();
+
+        Member member1 = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+                            //영속성 컨텍스트에 해당 객체를 가져왔는 지 확인하는 메서드
+        boolean isLoaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
+        assertThat(isLoaded).as("페치 조인 미적용").isFalse();
+    }
+    @Test
+    public void fetchJoinTest () throws Exception{
+        em.flush();
+        em.clear();
+        //.fetchJoin() 매서드를 걸어주면 연관관계의 엔티티를 Fetch Join 해ㅂ
+        Member member1 = queryFactory
+                .selectFrom(member)
+                .join(member.team, team ).fetchJoin()
+                .where(member.username.eq("member1"))
+                .fetchOne();
+                            //영속성 컨텍스트에 해당 객체를 가져왔는 지 확인하는 메서드
+        boolean isLoaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
+        assertThat(isLoaded).as("페치 조인  적용").isTrue();
     }
     
 }
