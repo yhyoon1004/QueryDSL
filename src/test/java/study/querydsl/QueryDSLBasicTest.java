@@ -2,6 +2,7 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -304,7 +305,7 @@ public class QueryDSLBasicTest {
     public void fetchJoinTest () throws Exception{
         em.flush();
         em.clear();
-        //.fetchJoin() 매서드를 걸어주면 연관관계의 엔티티를 Fetch Join 해ㅂ
+        //.fetchJoin() 매서드를 걸어주면 연관관계의 엔티티를 Fetch Join 해인ㅂ
         Member member1 = queryFactory
                 .selectFrom(member)
                 .join(member.team, team ).fetchJoin()
@@ -313,6 +314,76 @@ public class QueryDSLBasicTest {
                             //영속성 컨텍스트에 해당 객체를 가져왔는 지 확인하는 메서드
         boolean isLoaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
         assertThat(isLoaded).as("페치 조인  적용").isTrue();
+    }
+
+    /**
+     * 나이가 가장 많은 회원 조회
+     * */
+    @Test
+    public void subQueryTest () throws Exception{
+        QMember memberSubQ = new QMember("memberSubQ");
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.eq(
+                        JPAExpressions.select(memberSubQ.age.max())
+                                .from(memberSubQ)
+                )).fetch();
+        assertThat(result).extracting("age").containsExactly(40);
+    }
+    /**
+     * 나이가 평균 이상인 회원 조회
+     * */
+    @Test
+    public void subQueryTest2 () throws Exception{
+        QMember memberSubQ = new QMember("memberSubQ");
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.goe(
+                        JPAExpressions
+                                .select(memberSubQ.age.avg())
+                                .from(memberSubQ)
+                )).fetch();
+        assertThat(result)
+                .extracting("age")
+                .containsExactly(30,40);
+    }
+    /**
+     * 나이가 평균 이상인 회원 조회
+     * */
+    @Test
+    public void subQueryTest3 () throws Exception{
+        QMember memberSubQ = new QMember("memberSubQ");
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.in(
+                        JPAExpressions
+                                .select(memberSubQ.age)
+                                .from(memberSubQ)
+                                .where(memberSubQ.age.gt(10))
+                )).fetch();
+        assertThat(result)
+                .extracting("age")
+                .containsExactly(20 ,30,40);
+    }
+    @Test
+    public void subQueryTest4 () throws Exception{
+        QMember memberSubQ = new QMember("memberSubQ");
+        List<Tuple> result = queryFactory
+                .select(member.username, JPAExpressions.select(memberSubQ.age.avg()).from(memberSubQ))
+                .from(member)
+                .fetch();
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+
+        /**
+         * JPA 서브 쿼리는 from 절의 서브쿼리(인라인 뷰)를 사용하지 못함 -> QueryDSL 도 마찬가지로 지원하지 않음
+         * __해결방안__
+         * 1. 서브쿼리를 join으로 해결할 수 있으면 그렇게 처리
+         * 2. 쿼리를 2번 실행하여 처리
+         * 3. nativeSQL 실행
+         * */
+
     }
     
 }
