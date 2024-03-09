@@ -2,6 +2,8 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
@@ -15,6 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import study.querydsl.dto.MemberDTO;
+import study.querydsl.dto.UserDTO;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.QTeam;
@@ -457,7 +461,81 @@ public class QueryDSLBasicTest {
             String username = tuple.get(member.username);
             Integer age = tuple.get(member.age);
             System.out.println("username = " + username);
-            System.out.println("age = " + age); 
+            System.out.println("age = " + age);
+        }
+    }
+
+    @Test
+    public void findDTOByJPQL() throws Exception {
+        List<MemberDTO> resultList = em.createQuery(
+                "select new study.querydsl.dto.MemberDTO(m.username, m.age) from Member m", MemberDTO.class
+        ).getResultList();
+
+        for (MemberDTO memberDTO : resultList) {
+            System.out.println("memberDTO = " + memberDTO);
+        }
+    }
+
+    @Test
+    public void findDTOByQueryDSL () throws Exception{
+        // setter 이용해서 값이 주입됨
+        List<MemberDTO> result = queryFactory
+                .select(Projections.bean(MemberDTO.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDTO memberDTO : result) {
+            System.out.println("memberDTO = " + memberDTO);
+        }
+    }
+
+    @Test
+    public void findDTOByFieldOfQueryDSL () throws Exception{
+        //getter setter 없어도 됨,
+        List<MemberDTO> result = queryFactory
+                .select(Projections.fields(MemberDTO.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDTO memberDTO : result) {
+            System.out.println("memberDTO = " + memberDTO);
+        }
+    }
+    @Test
+    public void findDTOByConstructorOfQueryDSL () throws Exception{
+        // 매개변수로 들어가는 값의 타입이 맞아야함
+        List<MemberDTO> result = queryFactory
+                .select(Projections.constructor( MemberDTO.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDTO memberDTO : result) {
+            System.out.println("memberDTO = " + memberDTO);
+        }
+    }
+
+    @Test
+    public void findUserDTOByFieldOfQueryDSL () throws Exception{
+        QMember sQMember = new QMember("SubQueryMember");
+
+        List<UserDTO> result = queryFactory
+                .select(
+                        Projections.fields(
+                                //해당 DTO의 필드가 매칭되는 게 없어 null이 들어 오게 되는 데 이때 .as("DTO 필드 명")매서드를 사용하면 매칭하여 찾아줌
+                                UserDTO.class, member.username.as("name"),
+                                ExpressionUtils.as(
+                                        JPAExpressions
+                                                .select(sQMember.age.max())
+                                                .from(sQMember),
+                                        "age"
+                                )
+                        )
+                )
+                .from(member)
+                .fetch();
+
+        for (UserDTO userDTO : result) {
+            System.out.println("memberDTO = " + userDTO );
         }
     }
 
