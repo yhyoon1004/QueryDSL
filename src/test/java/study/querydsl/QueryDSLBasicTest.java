@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
@@ -552,4 +553,34 @@ public class QueryDSLBasicTest {
             System.out.println("memberDTO = " + memberDTO);
         }
     }
+    
+    @Test
+    public void dynamicQueryBooleanBuilderTest() throws Exception{
+        String usernameParam = "member1";
+        Integer ageParam = 10;
+
+        List<Member> result =  searchMember1(usernameParam, ageParam);
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    private List<Member> searchMember1(String usernameParam, Integer ageParam) {
+
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        //        아래 주석 코드처럼 생성자에 바로 주입시킬 수 있음, 반드시 들어가야하는 속성에서 사용
+        //        BooleanBuilder booleanBuilder = new BooleanBuilder(member.username.eq(usernameParam);
+
+        if (usernameParam != null) {
+            booleanBuilder.and(member.username.eq(usernameParam));
+        }
+
+        if (ageParam != null) {
+            booleanBuilder.and(member.age.eq(ageParam));
+        }
+
+        return queryFactory
+                .selectFrom(member)
+                .where(booleanBuilder)
+                .fetch();
+    }
+
 }
