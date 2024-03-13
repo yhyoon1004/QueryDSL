@@ -4,6 +4,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
@@ -567,7 +568,7 @@ public class QueryDSLBasicTest {
 
         BooleanBuilder booleanBuilder = new BooleanBuilder();
         //        아래 주석 코드처럼 생성자에 바로 주입시킬 수 있음, 반드시 들어가야하는 속성에서 사용
-        //        BooleanBuilder booleanBuilder = new BooleanBuilder(member.username.eq(usernameParam);
+        //        BooleanBuilder booleanBuilder = new BooleanBuilder(member.username.eq(usernameParam));
 
         if (usernameParam != null) {
             booleanBuilder.and(member.username.eq(usernameParam));
@@ -583,4 +584,26 @@ public class QueryDSLBasicTest {
                 .fetch();
     }
 
+    @Test
+    public void dynamicQuery_WhereParam () throws Exception{
+        String usernameParam = "member1";
+        Integer ageParam = null;
+
+        List<Member> result =  searchMember2(usernameParam, ageParam);
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    private List<Member> searchMember2(String usernameParam, Integer ageParam) {
+        return queryFactory.selectFrom(member)
+                .where(usernameEq(usernameParam), ageEq(ageParam))
+                .fetch();
+    }
+
+    private Predicate usernameEq(String usernameParam) {
+        return usernameParam == null ? null : member.username.eq(usernameParam);
+    }
+
+    private Predicate ageEq(Integer ageParam) {
+        return ageParam == null ? null : member.age.eq(ageParam);
+    }
 }
