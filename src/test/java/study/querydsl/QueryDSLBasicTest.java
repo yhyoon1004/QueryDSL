@@ -18,6 +18,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDTO;
 import study.querydsl.dto.QMemberDTO;
@@ -64,8 +65,8 @@ public class QueryDSLBasicTest {
         em.persist(member3);
         em.persist(member4);
 
-        em.flush();
-        em.clear();
+ /*       em.flush();
+        em.clear();*/
     }
 
     @Test
@@ -606,4 +607,38 @@ public class QueryDSLBasicTest {
     private Predicate ageEq(Integer ageParam) {
         return ageParam == null ? null : member.age.eq(ageParam);
     }
+
+    @Test
+    @Commit
+    public void bulkUpdateTest () throws Exception{
+        long count = queryFactory.update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+        em.flush();
+        em.clear();
+        //항상 벌크성 쿼리를 수행하고 나서는 영속성 컨텍스트를 초기화해주자...!
+        //jpa는 영속성 컨택스트에 가지고 있는 엔티티가 있으면 db에서 해당 데이터를 가져와도 기존에 있던 엔티티를 사용한다.
+        List<Member> result = queryFactory.select(member).from(member)
+                .fetch();
+        for (Member member : result) {
+            System.out.println("member = " + member);
+        }
+    }
+
+    @Test
+    public void bulkAddTest () throws Exception{
+        queryFactory.update(member)
+                .set(member.age, member.age.add(1))
+                .execute();
+    }
+
+    @Test
+    public void bulkDelete () throws Exception{
+        long count = queryFactory
+                .delete(member)
+                .where(member.age.gt(18))
+                .execute();
+    }
+
 }
