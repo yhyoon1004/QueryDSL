@@ -201,9 +201,9 @@ public class QueryDSLBasicTest {
 
     /**
      * 팀의 이름과 각 팀의 평균 연령을 구해라.
-     * */
+     */
     @Test
-    public void groupByTest () throws Exception{
+    public void groupByTest() throws Exception {
         List<Tuple> result = queryFactory
                 .select(
                         team.name,
@@ -221,7 +221,7 @@ public class QueryDSLBasicTest {
     }
 
     @Test
-    public void joinTest () throws Exception{
+    public void joinTest() throws Exception {
         List<Member> result = queryFactory
                 .selectFrom(member)
                 .leftJoin(member.team, team)
@@ -231,11 +231,12 @@ public class QueryDSLBasicTest {
         assertThat(result).extracting("username").containsExactly("member1", "member2");
     }
 
-    /** 세타 조인
+    /**
+     * 세타 조인
      * 회원의 이름이 팀의 이름과 같은 회원 조회
-     * */
+     */
     @Test
-    public void thetaJoinTest () throws Exception{
+    public void thetaJoinTest() throws Exception {
         em.persist(new Member("teamA"));
         em.persist(new Member("teamB"));
         em.persist(new Member("teamC"));
@@ -250,15 +251,15 @@ public class QueryDSLBasicTest {
 
         assertThat(result)
                 .extracting("username")
-                .containsExactly("teamA","teamB");
+                .containsExactly("teamA", "teamB");
     }
 
     /**
-     *  예) 회원과 팀을 조인하며, 팀 이름이 teamA 인 팀만 조인, 회원은 모두 조회
-     *  JPQL : select m, t from Member m left join m.team t on t.name = 'teamA'
-     *  */
+     * 예) 회원과 팀을 조인하며, 팀 이름이 teamA 인 팀만 조인, 회원은 모두 조회
+     * JPQL : select m, t from Member m left join m.team t on t.name = 'teamA'
+     */
     @Test
-    public void joinOnTest () throws Exception{
+    public void joinOnTest() throws Exception {
         List<Tuple> result = queryFactory
                 .select(member, team)
                 .from(member)
@@ -275,9 +276,9 @@ public class QueryDSLBasicTest {
     /**
      * 연관관계가 없는 엔티티를 외부조인
      * 회원의 이름이 팀의 이름과 같은 대상을 외부 조인
-     * */
+     */
     @Test
-    public void joinOnNoRelationTest () throws Exception{
+    public void joinOnNoRelationTest() throws Exception {
         em.persist(new Member("teamA"));
         em.persist(new Member("teamB"));
         em.persist(new Member("teamC"));
@@ -299,7 +300,7 @@ public class QueryDSLBasicTest {
     EntityManagerFactory emf;
 
     @Test
-    public void noFetchJoinTest () throws Exception{
+    public void noFetchJoinTest() throws Exception {
         em.flush();
         em.clear();
 
@@ -307,30 +308,31 @@ public class QueryDSLBasicTest {
                 .selectFrom(member)
                 .where(member.username.eq("member1"))
                 .fetchOne();
-                            //영속성 컨텍스트에 해당 객체를 가져왔는 지 확인하는 메서드
+        //영속성 컨텍스트에 해당 객체를 가져왔는 지 확인하는 메서드
         boolean isLoaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
         assertThat(isLoaded).as("페치 조인 미적용").isFalse();
     }
+
     @Test
-    public void fetchJoinTest () throws Exception{
+    public void fetchJoinTest() throws Exception {
         em.flush();
         em.clear();
         //.fetchJoin() 매서드를 걸어주면 연관관계의 엔티티를 Fetch Join 해인ㅂ
         Member member1 = queryFactory
                 .selectFrom(member)
-                .join(member.team, team ).fetchJoin()
+                .join(member.team, team).fetchJoin()
                 .where(member.username.eq("member1"))
                 .fetchOne();
-                            //영속성 컨텍스트에 해당 객체를 가져왔는 지 확인하는 메서드
+        //영속성 컨텍스트에 해당 객체를 가져왔는 지 확인하는 메서드
         boolean isLoaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
         assertThat(isLoaded).as("페치 조인  적용").isTrue();
     }
 
     /**
      * 나이가 가장 많은 회원 조회
-     * */
+     */
     @Test
-    public void subQueryTest () throws Exception{
+    public void subQueryTest() throws Exception {
         QMember memberSubQ = new QMember("memberSubQ");
         List<Member> result = queryFactory
                 .selectFrom(member)
@@ -340,11 +342,12 @@ public class QueryDSLBasicTest {
                 )).fetch();
         assertThat(result).extracting("age").containsExactly(40);
     }
+
     /**
      * 나이가 평균 이상인 회원 조회
-     * */
+     */
     @Test
-    public void subQueryTest2 () throws Exception{
+    public void subQueryTest2() throws Exception {
         QMember memberSubQ = new QMember("memberSubQ");
         List<Member> result = queryFactory
                 .selectFrom(member)
@@ -355,13 +358,14 @@ public class QueryDSLBasicTest {
                 )).fetch();
         assertThat(result)
                 .extracting("age")
-                .containsExactly(30,40);
+                .containsExactly(30, 40);
     }
+
     /**
      * 나이가 평균 이상인 회원 조회
-     * */
+     */
     @Test
-    public void subQueryTest3 () throws Exception{
+    public void subQueryTest3() throws Exception {
         QMember memberSubQ = new QMember("memberSubQ");
         List<Member> result = queryFactory
                 .selectFrom(member)
@@ -373,10 +377,11 @@ public class QueryDSLBasicTest {
                 )).fetch();
         assertThat(result)
                 .extracting("age")
-                .containsExactly(20 ,30,40);
+                .containsExactly(20, 30, 40);
     }
+
     @Test
-    public void subQueryTest4 () throws Exception{
+    public void subQueryTest4() throws Exception {
         QMember memberSubQ = new QMember("memberSubQ");
         List<Tuple> result = queryFactory
                 .select(member.username, JPAExpressions.select(memberSubQ.age.avg()).from(memberSubQ))
@@ -396,7 +401,7 @@ public class QueryDSLBasicTest {
     }
 
     @Test
-    public void caseTest () throws Exception{
+    public void caseTest() throws Exception {
         List<String> result = queryFactory
                 .select(
                         member.age.when(10).then("열살")
@@ -411,7 +416,7 @@ public class QueryDSLBasicTest {
     }
 
     @Test
-    public void complexCaseTest () throws Exception{
+    public void complexCaseTest() throws Exception {
         List<String> result = queryFactory
                 .select(
                         new CaseBuilder()
@@ -426,12 +431,12 @@ public class QueryDSLBasicTest {
         }
     }
 
-    
+
     @Test
-    public void constantTest () throws Exception{
+    public void constantTest() throws Exception {
         List<Tuple> result = queryFactory
                 .select(
-                member.username, Expressions.constant("A")// Expressions를 이용해 상수 넣는 법
+                        member.username, Expressions.constant("A")// Expressions를 이용해 상수 넣는 법
                 )
                 .from(member)
                 .fetch();
@@ -441,7 +446,7 @@ public class QueryDSLBasicTest {
     }
 
     @Test
-    public void concatTest () throws Exception{
+    public void concatTest() throws Exception {
         List<String> result = queryFactory
                 .select(
                         member.username.concat("_").concat(member.age.stringValue())// 값이 정수 타입이므로 문자열 변환
@@ -453,9 +458,9 @@ public class QueryDSLBasicTest {
             System.out.println("item = " + item);
         }
     }
-    
+
     @Test
-    public void tupleProjectionTest () throws Exception{
+    public void tupleProjectionTest() throws Exception {
         List<Tuple> result = queryFactory
                 .select(member.username, member.age)
                 .from(member)
@@ -481,7 +486,7 @@ public class QueryDSLBasicTest {
     }
 
     @Test
-    public void findDTOByQueryDSL () throws Exception{
+    public void findDTOByQueryDSL() throws Exception {
         // setter 이용해서 값이 주입됨
         List<MemberDTO> result = queryFactory
                 .select(Projections.bean(MemberDTO.class, member.username, member.age))
@@ -494,7 +499,7 @@ public class QueryDSLBasicTest {
     }
 
     @Test
-    public void findDTOByFieldOfQueryDSL () throws Exception{
+    public void findDTOByFieldOfQueryDSL() throws Exception {
         //getter setter 없어도 됨,
         List<MemberDTO> result = queryFactory
                 .select(Projections.fields(MemberDTO.class, member.username, member.age))
@@ -505,11 +510,12 @@ public class QueryDSLBasicTest {
             System.out.println("memberDTO = " + memberDTO);
         }
     }
+
     @Test
-    public void findDTOByConstructorOfQueryDSL () throws Exception{
+    public void findDTOByConstructorOfQueryDSL() throws Exception {
         // 매개변수로 들어가는 값의 타입이 맞아야함
         List<MemberDTO> result = queryFactory
-                .select(Projections.constructor( MemberDTO.class, member.username, member.age))
+                .select(Projections.constructor(MemberDTO.class, member.username, member.age))
                 .from(member)
                 .fetch();
 
@@ -519,7 +525,7 @@ public class QueryDSLBasicTest {
     }
 
     @Test
-    public void findUserDTOByFieldOfQueryDSL () throws Exception{
+    public void findUserDTOByFieldOfQueryDSL() throws Exception {
         QMember sQMember = new QMember("SubQueryMember");
 
         List<UserDTO> result = queryFactory
@@ -539,13 +545,13 @@ public class QueryDSLBasicTest {
                 .fetch();
 
         for (UserDTO userDTO : result) {
-            System.out.println("memberDTO = " + userDTO );
+            System.out.println("memberDTO = " + userDTO);
         }
     }
 
 
     @Test
-    public void findDByQueryProjectionTest () throws Exception{
+    public void findDByQueryProjectionTest() throws Exception {
         List<MemberDTO> result = queryFactory
                 .select(new QMemberDTO(member.username, member.age))
                 .from(member)
@@ -555,13 +561,13 @@ public class QueryDSLBasicTest {
             System.out.println("memberDTO = " + memberDTO);
         }
     }
-    
+
     @Test
-    public void dynamicQueryBooleanBuilderTest() throws Exception{
+    public void dynamicQueryBooleanBuilderTest() throws Exception {
         String usernameParam = "member1";
         Integer ageParam = 10;
 
-        List<Member> result =  searchMember1(usernameParam, ageParam);
+        List<Member> result = searchMember1(usernameParam, ageParam);
         assertThat(result.size()).isEqualTo(1);
     }
 
@@ -586,11 +592,11 @@ public class QueryDSLBasicTest {
     }
 
     @Test
-    public void dynamicQuery_WhereParam () throws Exception{
+    public void dynamicQuery_WhereParam() throws Exception {
         String usernameParam = "member1";
         Integer ageParam = null;
 
-        List<Member> result =  searchMember2(usernameParam, ageParam);
+        List<Member> result = searchMember2(usernameParam, ageParam);
         assertThat(result.size()).isEqualTo(1);
     }
 
@@ -610,7 +616,7 @@ public class QueryDSLBasicTest {
 
     @Test
     @Commit
-    public void bulkUpdateTest () throws Exception{
+    public void bulkUpdateTest() throws Exception {
         long count = queryFactory.update(member)
                 .set(member.username, "비회원")
                 .where(member.age.lt(28))
@@ -627,18 +633,51 @@ public class QueryDSLBasicTest {
     }
 
     @Test
-    public void bulkAddTest () throws Exception{
+    public void bulkAddTest() throws Exception {
         queryFactory.update(member)
                 .set(member.age, member.age.add(1))
                 .execute();
     }
 
     @Test
-    public void bulkDelete () throws Exception{
+    public void bulkDelete() throws Exception {
         long count = queryFactory
                 .delete(member)
                 .where(member.age.gt(18))
                 .execute();
+    }
+
+    @Test
+    public void sqlFunctionTest() throws Exception {
+        List<String> result = queryFactory
+                .select(
+                        Expressions.stringTemplate(
+                                "function('replace',{0},{1},{2})", member.username, "member", "M"
+                        )
+                ).from(member)
+                .fetch();
+        for (String value : result) {
+            System.out.println("value = " + value);
+        }
+    }
+
+    @Test
+    public void sqlFunctionTest2() throws Exception {
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+//                .where(
+//                        member.username.eq(
+//                                Expressions.stringTemplate("function('lower',{0})", member.username)
+//                        )
+//                )
+                .where(member.username.eq(member.username.lower()))//위의 코드를 이렇게 바꿀 수 있음
+                .fetch();
+
+        for (String value : result) {
+            System.out.println("value = " + value);
+        }
+
     }
 
 }
