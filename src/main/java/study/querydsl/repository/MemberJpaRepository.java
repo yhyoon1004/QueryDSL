@@ -1,10 +1,15 @@
 package study.querydsl.repository;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+import study.querydsl.dto.MemberSearchCondition;
+import study.querydsl.dto.MemberTeamDTO;
+import study.querydsl.dto.QMemberTeamDTO;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 
@@ -12,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static study.querydsl.entity.QMember.*;
+import static study.querydsl.entity.QTeam.team;
 
 @Repository
 public class MemberJpaRepository {
@@ -40,7 +46,7 @@ public class MemberJpaRepository {
 
     public List<Member> findAll_QueryDSL() {
         return queryFactory
-                 .selectFrom(member).fetch();
+                .selectFrom(member).fetch();
     }
 
     public List<Member> findByUsername(String username) {
@@ -49,7 +55,40 @@ public class MemberJpaRepository {
     }
 
     public List<Member> findByUsername_QueryDSL(String username) {
-        return  queryFactory.selectFrom(member).where(member.username.eq(username)).fetch();
+        return queryFactory.selectFrom(member).where(member.username.eq(username)).fetch();
+    }
+
+
+    public List<MemberTeamDTO> searchByBuilder(MemberSearchCondition condition) {
+
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        if (StringUtils.hasText(condition.getUsername())) { //web에서 필드값으로 "" 와 같이 넘어올수 있어 StringUtils.hasText()를 활용해 체크
+            booleanBuilder.and(member.username.eq(condition.getUsername()));
+        }
+        if (StringUtils.hasText(condition.getTeamName())) {
+            booleanBuilder.and(team.name.eq(condition.getTeamName()));
+        }
+        if (condition.getAgeGoe() != null) {
+            booleanBuilder.and(member.age.goe(condition.getAgeGoe()));
+        }
+        if (condition.getAgeLoe() != null) {
+            booleanBuilder.and(member.age.loe(condition.getAgeLoe()));
+        }
+
+        return queryFactory.select(
+                        new QMemberTeamDTO(
+                                member.id.as("memberId"),
+                                member.username,
+                                member.age,
+                                team.id.as("teamId"),
+                                team.name.as("teamName")
+                        )
+                )
+                .from(member)
+                .leftJoin(member.team, team)
+                .where(booleanBuilder)
+                .fetch();
+
     }
 
 }
