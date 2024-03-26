@@ -107,8 +107,8 @@ public class MemberRepositoryImpl implements MemberCustomRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        JPAQuery<Member> countQuery = queryFactory
-                .select(member)
+        JPAQuery<Long> countQuery = queryFactory
+                .select(member.count())
                 .from(member)
                 .leftJoin(member.team, team)
                 .where(
@@ -118,7 +118,7 @@ public class MemberRepositoryImpl implements MemberCustomRepository {
                         ageLOE(condition.getAgeLoe())
                 );
 //        return new PageImpl<>(content, pageable, total);
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount); //spring jpa 가 제공해주는 최적화 함수 -> 페이지 카운트 최적화 로직
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne); //spring jpa 가 제공해주는 최적화 함수 -> 페이지 카운트 최적화 로직
     }
 
     private BooleanExpression usernameEq(String username) {
